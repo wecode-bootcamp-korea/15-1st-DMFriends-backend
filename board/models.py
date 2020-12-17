@@ -6,6 +6,7 @@ class Board(models.Model):
     created_at      = models.DateTimeField(auto_now = True)
     content         = models.CharField(max_length=45)
     theme           = models.CharField(max_length=45)
+    board_comment   = models.ManyToManyField('user.Member', through='Comment')
 
     class Meta:
         db_table = "boards"
@@ -17,13 +18,6 @@ class BoardImage(models.Model):
     class Meta:
         db_table = "boardimages"
 
-class BoardLike(models.Model):
-    member  = models.ForeignKey('user.Member',on_delete = models.SET_NULL, null=True)
-    is_like = models.BooleanField()
-    board   = models.ForeignKey('Board',on_delete = models.SET_NULL, null=True) 
-
-    class Meta:
-        db_table = "boardlikes"
 
 class Comment(models.Model):
     writer        = models.ForeignKey('user.Member', on_delete = models.SET_NULL, null=True)
@@ -35,10 +29,3 @@ class Comment(models.Model):
     class Meta:
         db_table = "comments"
 
-class CommentLike(models.Model):
-    comment = models.ForeignKey('Comment',on_delete = models.SET_NULL, null=True)
-    member  = models.ForeignKey('user.Member',on_delete = models.SET_NULL, null=True)
-    is_like = models.BooleanField()
-
-    class Meta:
-        db_table = "commentlikes"
