@@ -1,3 +1,4 @@
+'''
 import json, bcrypt, jwt, re
 import my_settings
 from random
@@ -56,3 +57,4 @@ class LoginView(View):
 
         return JsonResponse({'message':'INVALID_PASSWORD'}, status=400)
 
+'''
