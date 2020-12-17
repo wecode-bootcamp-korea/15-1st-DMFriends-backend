@@ -11,7 +11,7 @@ class Board(models.Model):
         db_table = "boards"
 
 class BoardImage(models.Model): 
-    board_id    = models.ForeignKey('Board', on_delete = models.SET_NULL, null=True)
+    board       = models.ForeignKey('Board', on_delete = models.SET_NULL, null=True)
     image_url   = models.CharField(max_length=2000)  
 
     class Meta:

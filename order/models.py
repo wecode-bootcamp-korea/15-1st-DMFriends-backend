@@ -52,7 +52,6 @@ class Payment(models.Model):
 
 class PaymentType(models.Model):
     name    = models.CharField(max_length=45)
-    member  = models.ManyToManyField('user.Member', through='Payment')
     
     class Meta:
         db_table = 'paymenttypes'
