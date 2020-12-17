@@ -1,68 +1,23 @@
-from django.db import models
-from order.models import *
-from product.models import *
-from board.models import *
-
+from django.db      import models
+from product.models import Product
 
 class Member(models.Model):
-    def random_number():
-        return str(random.randit(1000,9999))
-    email             = models.EmailField(max_length=100)
+    email             = models.EmailField(max_length=100, unique=True)
     nickname          = models.CharField(max_length=20)
-    privacy_agreement = models.BooleanField()
-    anonymous         = models.BooleanField()
-    random_number     = models.CharField(max_length=45, default = random_number)
+    privacy_agreement = models.BooleanField(default=False)
+    anonymous         = models.BooleanField(default=False)
+    random_number     = models.CharField(max_length=45)
     password          = models.CharField(max_length=100)
-    board             = models.ManyToManyField('Board', through='BoardLike')
-    comment           = models.ManyToManyField('Comment', through='CommentLike')
-    product           = models.ManyToManyField('Product', through='RecentView')
+    board_like        = models.ManyToManyField('board.Board', through='board.BoardLike')
+    comment_like      = models.ManyToManyField('board.Comment', through='board.CommentLike')
+    
     class Meta:
         db_table = 'members'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class RecentView(models.Model):
+    product     = models.ForeignKey('product.Product',on_delete = models.SET_NULL, null=True)
+    member      = models.ForeignKey('Member',on_delete = models.SET_NULL, null=True)
+    viewed_at   = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'recentviews'
