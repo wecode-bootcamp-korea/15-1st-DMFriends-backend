@@ -11,6 +11,7 @@ class Member(models.Model):
     board_like        = models.ManyToManyField('board.Board', through='BoardLike')
     comment_like      = models.ManyToManyField('board.Comment', through='CommentLike')
     member_recentview = models.ManyToManyField('product.Product', through='RecentView')
+    
     class Meta:
         db_table = 'members'
 

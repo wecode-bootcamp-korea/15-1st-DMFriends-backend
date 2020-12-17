@@ -29,7 +29,7 @@ class Product(models.Model):
     subcategory     = models.ForeignKey('Subcategory', on_delete = models.SET_NULL, null=True)
     character       = models.ForeignKey('Character', on_delete = models.SET_NULL, null=True)
     discount        = models.ForeignKey('Discount', on_delete = models.SET_NULL, null=True)
-    image           = models.CharField(max_length = 1000)
+    image_url       = models.URLField(max_length = 2000, null=True)
     created_at      = models.DateTimeField(auto_now = True)
     
     class Meta:
@@ -43,7 +43,7 @@ class ProductImage(models.Model):
         db_table = "productimages"
 
 class Discount(models.Model):
-    discount_rate   = models.FloatField(default=0.0)
+    discount_rate   = models.DecimalField(max_digits= 3, decimal_places=1)
     discount_type   = models.CharField(max_length=45)
     discount_due    = models.DateTimeField(auto_now=True)
     
