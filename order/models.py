@@ -1,16 +1,15 @@
-from django.db import models
-from user.models import Member
+from django.db      import models
+from user.models    import Member
 from product.models import Product
-
 
 class Order(models.Model):
     order_number      = models.CharField(max_length=45)
-    order_status      = models.OneToOneField('OrderStatus', on_delete = models.SET_NULL, null=True, default = 1)    
-    address           = models.OneToOneField('Address', on_delete = models.SET_NULL, null=True)
-    member            = models.OneToOneField('user.Member', on_delete = models.SET_NULL, null=True)
+    order_status      = models.ForeignKey('OrderStatus', on_delete = models.SET_NULL, null=True, default = 1)    
+    address           = models.ForeignKey('Address', on_delete = models.SET_NULL, null=True)
+    member            = models.ForeignKey('user.Member', on_delete = models.SET_NULL, null=True)
     delivery_message  = models.CharField(max_length=500)
     order_date        = models.DateField( auto_now = True)
-    payments          = models.OneToOneField( 'Payment', on_delete   = models.SET_NULL, null=True)
+    payments          = models.ForeignKey( 'Payment', on_delete   = models.SET_NULL, null=True)
     
     class Meta:
         db_table = "orders"
@@ -34,9 +33,9 @@ class OrderStatus(models.Model):
 class Cart(models.Model):
     quantity    = models.IntegerField(default=0)
     total_price = models.DecimalField(max_digits= 7, decimal_places=2)
-    product     = models.OneToOneField('product.Product', on_delete = models.SET_NULL, default = 1)
+    product     = models.ForeignKey('product.Product', on_delete = models.SET_NULL, null=True, default = 1)
     created_at  = models.DateTimeField(auto_now = True)
-    order       = models.OneToOneField('Order', on_delete = models.SET_NULL, default = 1)
+    order       = models.ForeignKey('Order', on_delete = models.SET_NULL, null=-True, default = 1)
     
     class Meta:
         db_table = "carts"
@@ -44,9 +43,9 @@ class Cart(models.Model):
 class Payment(models.Model):
     kakao_pay_id    = models.CharField(max_length=45)
     virtual_account = models.CharField(max_length=45)
-    payments_type   = models.ForeignKey('PaymentType',on_delete = models.SET_NULL, default = 1)
-    member          = models.ForeignKey('user.Member',on_delete = models.SET_NULL, default = 1)
-    payments_status = models.OneToOneField('PaymentStatus', on_delete = models.SET_NULL, default = 1)
+    payments_type   = models.ForeignKey('PaymentType',on_delete = models.SET_NULL, null= True, default = 1)
+    member          = models.ForeignKey('user.Member',on_delete = models.SET_NULL, null= True, default = 1)
+    payments_status = models.ForeignKey('PaymentStatus', on_delete = models.SET_NULL, null= True, default = 1)
     
     class Meta:
         db_table = 'payments'
@@ -55,7 +54,7 @@ class PaymentType(models.Model):
     name    = models.CharField(max_length=45)
     member  = models.ManyToManyField('user.Member', through='Payment')
     
-    lass Meta:
+    class Meta:
         db_table = 'paymenttypes'
 
 class PaymentStatus(models.Model):
@@ -63,4 +62,3 @@ class PaymentStatus(models.Model):
     
     class Meta:
         db_table = 'paymentstatuses'
-

@@ -1,6 +1,5 @@
-from django.db import models
-from user.models import Member
-
+from django.db   import models
+  
 class Category(models.Model):
     name = models.CharField(max_length=45)
     
@@ -9,7 +8,7 @@ class Category(models.Model):
 
 class Subcategory(models.Model):
     name     = models.CharField(max_length=45)
-    category = models.OneToOneField('Category',on_delete = models.SET_NULL, null=True)
+    category = models.ForeignKey('Category',on_delete = models.SET_NULL, null=True)
     
     class Meta:
         db_table = "subcategories"
@@ -25,11 +24,11 @@ class Product(models.Model):
     name            = models.CharField(max_length=45, null=True)
     price           = models.DecimalField(max_digits= 6, decimal_places=2)
     star_rating     = models.DecimalField(max_digits= 3, decimal_places=1)
-    description     = models.TextField(default='')
+    description     = models.TextField(null=True)
     category        = models.ForeignKey('Category', on_delete = models.SET_NULL, null=True)
     subcategory     = models.ForeignKey('Subcategory', on_delete = models.SET_NULL, null=True)
     character       = models.ForeignKey('Character', on_delete = models.SET_NULL, null=True)
-    discount        = models.OneToOneField('Discount', on_delete = models.SET_NULL, null=True)
+    discount        = models.ForeignKey('Discount', on_delete = models.SET_NULL, null=True)
     image           = models.CharField(max_length = 1000)
     created_at      = models.DateTimeField(auto_now = True)
     
@@ -59,13 +58,5 @@ class Review(models.Model):
     star_rating = models.DecimalField(max_digits= 3, decimal_places=1)
     
     class Meta:
-        db_table = "reviewlikes"
-
-class RecentView(models.Model):
-    product     = models.ForeignKey('Product',on_delete = models.SET_NULL, null=True)
-    member      = models.ForeignKey('user.Member',on_delete = models.SET_NULL, null=True)
-    viewed_at   = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        db_table = 'recentviews'
+        db_table = "reviews"
 
