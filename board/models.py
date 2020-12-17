@@ -22,7 +22,7 @@ class BoardImage(models.Model):
 
 class BoardLike(models.Model):
     member      = models.ForeignKey('user.Member',on_delete  = models.CASCADE)
-    is_like     = models.BooleanField()
+    is_like     = models.BooleanField(default=False)
     board       = models.ForeignKey('Board',on_delete  = models.CASCADE)
     class Meta:
         db_table = "boardlikes"
@@ -49,4 +49,3 @@ class CommentLike(models.Model):
     is_like     = models.BooleanField()
     class Meta:
         db_table = "commentlikes"
-
