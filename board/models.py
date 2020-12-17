@@ -5,9 +5,7 @@ from user.models import *
 
 class Board(models.Model):
     uploader        = models.CharField(max_length=45)
-    created_at      = models.DateTimeField(
-                        auto_now = True,
-                        )
+    created_at      = models.DateTimeField(auto_now = True)
     content         = models.CharField(max_length=45)
     theme           = models.CharField(max_length=45)
     class Meta:
@@ -51,5 +49,4 @@ class CommentLike(models.Model):
     is_like     = models.BooleanField()
     class Meta:
         db_table = "commentlikes"
-
 
