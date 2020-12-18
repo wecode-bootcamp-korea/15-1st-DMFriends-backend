@@ -8,6 +8,7 @@ class Member(models.Model):
     anonymous         = models.BooleanField(default=False)
     random_number     = models.CharField(max_length=45)
     password          = models.CharField(max_length=100)
+    confirmPassword   = models.CharField(max_length=100, default = '')
     board_like        = models.ManyToManyField('board.Board', through='BoardLike')
     comment_like      = models.ManyToManyField('board.Comment', through='CommentLike')
     member_recentview = models.ManyToManyField('product.Product', through='RecentView')
