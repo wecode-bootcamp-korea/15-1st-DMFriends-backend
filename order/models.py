@@ -41,11 +41,11 @@ class Cart(models.Model):
         db_table = "carts"
 
 class Payment(models.Model):
-    kakao_pay_id    = models.CharField(max_length=45)
+    kakao_pay       = models.CharField(max_length=45)
     virtual_account = models.CharField(max_length=45)
-    payments_type   = models.ForeignKey('PaymentType',on_delete = models.SET_NULL, null= True, default = 1)
+    payment_type   = models.ForeignKey('PaymentType',on_delete = models.SET_NULL, null= True, default = 1)
     member          = models.ForeignKey('user.Member',on_delete = models.SET_NULL, null= True, default = 1)
-    payments_status = models.ForeignKey('PaymentStatus', on_delete = models.SET_NULL, null= True, default = 1)
+    payment_status = models.ForeignKey('PaymentStatus', on_delete = models.SET_NULL, null= True, default = 1)
     
     class Meta:
         db_table = 'payments'
