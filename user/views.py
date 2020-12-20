@@ -1,14 +1,13 @@
 import json, bcrypt, jwt, re
 import my_settings
 
+
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 from user.models import Member, RecentView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-#CHECK_EMAIL= re.compile('^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-CHECK_PASSWORD = re.compile('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,32}$')
 
 class SignUpView(View):
     def post(self, request):
@@ -19,9 +18,6 @@ class SignUpView(View):
             
             if not validate_email(email):
                 raise ValidationError('INVALID_EMAIL')
-
-            if not re.match(CHECK_PASSWORD, password):
-                return JsonResponse({'message':'INVALID_PASSWORD'}, status=400)
                     
             if Member.objects.filter(email = email).exists():
                 return JsonResponse({'message': 'EXISTS_USER'}, status=409)    
@@ -39,7 +35,9 @@ class SignUpView(View):
             return JsonResponse({'message': 'SUCCESS'}, status=201)
             
         except ValidationError:
-            return JsonResponse({'message': 'VALIDATION_ERROR'}, status=400)
+            return JsonResponse({'message': 'VALIDATION_EMAIL'}, status=400)
 
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+
+
