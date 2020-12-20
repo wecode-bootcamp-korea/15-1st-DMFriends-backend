@@ -13,7 +13,7 @@ class SignUpView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            email = data.get('email')
+            email = data.get('email', None)
             password = data.get('password')
             
             if not validate_email(email):
@@ -39,5 +39,4 @@ class SignUpView(View):
 
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
-
 
