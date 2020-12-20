@@ -31,10 +31,12 @@ class CategoryView(View):
 
             return JsonResponse({"message" : "SUCCESS", "result" : product_list}, status = 200)
 class ReviewView(View):
-    def post(self, request):
+    def post(self, request, id):
         data        = json.loads(request.body)
         
-        product_ins = Product.objects.only('id').get(id=data["product"])
+        if Product.objects.filter(id=id) == "": #아무것도 반환하지 않을때 조건을 어떻게 명시해야하나
+            raise ValueError
+        product_ins = Product.objects.only('id').get(id=id)
         member_ins  = Member.objects.only('id').get(id=data["member"])
         Review.objects.create(star_rating=data['star_rating'], created_at=data['created_at'] , product=product_ins, member=member_ins, content = data['content']) 
 
