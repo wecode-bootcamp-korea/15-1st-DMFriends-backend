@@ -16,8 +16,8 @@ class SignUpView(View):
             email = data.get('email', None)
             password = data.get('password', None)
             
-            if not validate_email(email):
-                raise ValidationError('INVALID_EMAIL')
+            if email:
+               validate_email(email)
                     
             if Member.objects.filter(email = email).exists():
                 return JsonResponse({'message': 'EXISTS_USER'}, status=409)    
