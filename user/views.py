@@ -35,7 +35,7 @@ class SignUpView(View):
             return JsonResponse({'message': 'SUCCESS'}, status=201)
             
         except ValidationError:
-            return JsonResponse({'message': 'VALIDATION_EMAIL'}, status=400)
+            return JsonResponse({'message': 'INVALID_EMAIL'}, status=400)
 
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
