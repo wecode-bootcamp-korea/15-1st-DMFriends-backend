@@ -64,7 +64,7 @@ class ProductDetailView(View):
 
 class ReviewView(View):
     #@login_decorator
-    def post(self, request, id):
+    def post(self, request, product_id):
         data = json.loads(request.body)
         member_ins = Member.objects.get(id=request.user.id)
 
