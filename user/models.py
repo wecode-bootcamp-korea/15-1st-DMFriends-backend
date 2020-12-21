@@ -3,11 +3,11 @@ from product.models import Product
 
 class Member(models.Model):
     email             = models.EmailField(max_length=100, unique=True)
-    nickname          = models.CharField(max_length=20)
+    nickname          = models.CharField(max_length=20, null=True)
     privacy_agreement = models.BooleanField(default=False)
     anonymous         = models.BooleanField(default=False)
     random_number     = models.CharField(max_length=45)
-    password          = models.CharField(max_length=100)
+    password          = models.CharField(max_length=200, null=True)
     board_like        = models.ManyToManyField('board.Board', through='BoardLike')
     comment_like      = models.ManyToManyField('board.Comment', through='CommentLike')
     member_recentview = models.ManyToManyField('product.Product', through='RecentView')
