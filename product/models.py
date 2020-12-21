@@ -22,7 +22,7 @@ class Product(models.Model):
     subcategory     = models.ForeignKey('Subcategory', on_delete = models.SET_NULL, null=True)
     discount        = models.ForeignKey('Discount', on_delete = models.SET_NULL, null=True)
     image_url       = models.URLField(max_length = 2000, null=True)
-    created_at      = models.DateTimeField(auto_now = True)
+    created_at      = models.DateTimeField(auto_now=True)
     
     class Meta:
         db_table = "products"
