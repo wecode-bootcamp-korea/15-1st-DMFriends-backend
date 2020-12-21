@@ -1,8 +1,9 @@
 import json
 import decimal
 
-from django.views     import View
-from django.http      import JsonResponse
+from django.views  import View
+from django.http   import JsonResponse
+from django.db.models import Q
  
 from .models      import  (
     Category,
@@ -22,10 +23,8 @@ class ProductListView(View):
             subcategory_seq = request.GET.get('subcategory', None)
             sort            = request.GET.get('sort', None)
 
-            if subcategory_seq == None:
-                products = Product.objects.filter(category=category_seq).order_by(sort).values()
-            else:
-                products = Product.objects.filter(category=category_seq, subcategory=subcategory_seq).order_by(sort).values()
+            products = Product.objects.filter(Q(category=category_seq) | Q (subcategory=subcategory_seq)).order_by(sort).values()
+            
             filtered_products = [{
                 "id"            : item["id"],
                 "name"          : item["name"],
