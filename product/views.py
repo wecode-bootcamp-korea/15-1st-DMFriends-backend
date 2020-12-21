@@ -3,8 +3,8 @@ import json
 from django.views     import View
 from django.http      import JsonResponse
  
-from .models     import (
-    Category, 
+from .models     import  (
+    Category,
     Subcategory, 
     Product, 
     ProductImage, 
@@ -21,7 +21,6 @@ class ProductDetailView(View):
             return JsonResponse({"message" : "PRODUCT_DOES_NOT_EXIST"}, status=404)
 #한국어 인코딩이 안됨
 
-class ProductListView(View):
     def get(self, request):
             category_seq    = request.GET.get('category', None)
             subcategory_seq = request.GET.get('subcategory', None)
