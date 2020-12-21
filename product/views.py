@@ -15,7 +15,7 @@ from .models     import  (
 from user.models import Member
 
 class ProductView(View):
-    def get(self, request, id):
+    def get(self, request, product_id):
         try:
             if Product.objects.filter(id=product_id).exists():
                 product =  list(Product.objects.filter(id=product_id).values())
