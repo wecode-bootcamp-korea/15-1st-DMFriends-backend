@@ -4,7 +4,14 @@ from django.views     import View
 from django.http      import JsonResponse
 from django.shortcuts import render
  
-from .models     import Category, Subcategory, Product, ProductImage, Discount, Review
+from .models     import  (
+    Category,
+    Subcategory, 
+    Product, 
+    ProductImage, 
+    Discount, 
+    Review
+)
 from user.models import Member
 
 class ProductView(View):
