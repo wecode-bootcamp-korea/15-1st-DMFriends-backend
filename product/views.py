@@ -38,7 +38,7 @@ class CategoryView(View):
 
             return JsonResponse({"message" : "SUCCESS", "result" : product_list}, status = 200)
 class ReviewView(View):
-    def post(self, request, id):
+    def post(self, request, product_id):
         data        = json.loads(request.body)
         
         if Product.objects.filter(id=id) == "": #아무것도 반환하지 않을때 조건을 어떻게 명시해야하나
