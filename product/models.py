@@ -13,24 +13,16 @@ class Subcategory(models.Model):
     class Meta:
         db_table = "subcategories"
 
-class Character(models.Model):
-    name        = models.CharField(max_length=45)
-    image_url   = models.URLField(max_length=2000)
-    
-    class Meta:
-        db_table = "characters"
-
 class Product(models.Model):
     name            = models.CharField(max_length=45, null=True)
-    price           = models.DecimalField(max_digits= 6, decimal_places=2)
+    price           = models.DecimalField(max_digits= 7, decimal_places=2)
     star_rating     = models.DecimalField(max_digits= 3, decimal_places=1)
     description     = models.TextField(null=True)
     category        = models.ForeignKey('Category', on_delete = models.SET_NULL, null=True)
     subcategory     = models.ForeignKey('Subcategory', on_delete = models.SET_NULL, null=True)
-    character       = models.ForeignKey('Character', on_delete = models.SET_NULL, null=True)
     discount        = models.ForeignKey('Discount', on_delete = models.SET_NULL, null=True)
     image_url       = models.URLField(max_length = 2000, null=True)
-    created_at      = models.DateTimeField(auto_now = True)
+    created_at      = models.DateTimeField(auto_now=True)
     
     class Meta:
         db_table = "products"
