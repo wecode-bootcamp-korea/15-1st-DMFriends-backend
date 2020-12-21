@@ -17,10 +17,10 @@ from user.models import Member
 class ProductView(View):
     def get(self, request, id):
         try:
-            if Product.objects.filter(id=id) == "": #아무것도 반환하지 않을때 조건을 어떻게 명시해야하나
-                raise ValueError
-            product_list =  list(Product.objects.filter(id=id).values())
-            return JsonResponse({"message" : "SUCCESS", "result" : product_list}, status = 200) #리스트로 반환되는데 괜찮은건가
+            if Product.objects.filter(id=product_id).exists():
+                product =  list(Product.objects.filter(id=product_id).values())
+                return JsonResponse({"result" : product_list}, status = 200)
+            return JsonResponse({"message" : "PRODUCT_DOES_NOT_EXIST"}, status=404)
         except ValueError:
             return JsonResponse({'message' : 'ObjectDoesNotExist'}, status = 400)
 #한국어 인코딩이 안됨
