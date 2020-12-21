@@ -82,7 +82,7 @@ class BoardLikeView(View):
 
         if not BoardLike.objects.filter(board_id=request.data['board.id'], member_id=request.user.id).exist():
             BoardLike.objects.create(
-                member =request.user,
+                member_id =request.user,
                 board=Board.objects.get(id=data['board_id'])
             )
             return JsonResponse({'message': 'ADD'}, status=200)
@@ -98,7 +98,7 @@ class CommentLikeView(View):
 
         if not CommentLike.objects.filter(comment_id=request.data['comment.id'], member_id=request.user.id).exist():
             CommentLike.objects.create(
-                member =request.user,
+                member_id =request.user,
                 comment=Comment.objects.get(id=data['comment_id'])
             )
             return JsonResponse({'message': 'ADD'}, status=200)
@@ -116,9 +116,9 @@ class RecentView(View):
         if RecentView.objects.filter(product_id=product_id, member_id=member_id).exist():
             RecentView.objects.create(
                 member_id=member_id,
-                product_id=product_id  
+                product_id=product_id,
+                viewed_at = RecentView.objects.all().order_by('-viewed_at')[0:50]  
             )
-            viewed_at = RecentView.objects.all().order_by('-viewed_at')[0:50]
             return JsonResponse(['message':'RECENTVIEWED ADD'],status=200)
         
 
