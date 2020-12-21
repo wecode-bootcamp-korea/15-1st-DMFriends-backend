@@ -4,7 +4,8 @@ from user.models import Member
 class Board(models.Model):
     uploader        = models.CharField(max_length=45)
     created_at      = models.DateTimeField(auto_now = True)
-    content         = models.CharField(max_length=45)
+    title           = models.CharField(max_length=100, null=True)
+    content         = models.CharField(max_length=150)
     theme           = models.CharField(max_length=45)
     board_comment   = models.ManyToManyField('user.Member', through='Comment')
 
