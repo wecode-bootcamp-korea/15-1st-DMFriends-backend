@@ -7,7 +7,7 @@ from board.models   import Board, BoardImage, Comment
 from user.models    import Member, BoardLike, CommentLike
 
 # 1. 동묘프렌즈 첫 접속 - '오늘' 탭 게시물 로드
-class IndexView(View):
+class BoardListView(View):
     def get(self, request):
         try:
             board_data  = Board.objects.all()
