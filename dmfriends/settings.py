@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'board',
     'product',
     'order',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
