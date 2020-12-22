@@ -82,9 +82,13 @@ class GetCommentView(View):
         try:
             board_id    = request.GET.get('board_id', None)
             sort        = request.GET.get('sort', None)
+            page        = int(request.GET.get("page", 1) or 1)
+            page_size = 2
+            limit = int(page_size * page)
+            offset = int(limit - page_size) 
 
             if Comment.objects.filter(board_id = board_id).exists(): 
-                data = Comment.objects.filter(board_id=board_id).order_by(sort).values()
+                data = Comment.objects.filter(board_id=board_id).order_by(sort).values()[offset:limit]
                 comment_data = [{
                     "id"        : comment['id'],
                     "writer"    : Member.objects.get(id=comment['writer_id']).nickname,
@@ -94,7 +98,7 @@ class GetCommentView(View):
                 } for comment in data]
             else:
                 comment_data = ''
-            return JsonResponse({'message' : 'SUCCESS', 'comment_data' : comment_data}, status = 200)
+            return JsonResponse({'message' : 'SUCCESS', 'comment_data' : comment_data, 'page' : page}, status = 200)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except ValueError:
