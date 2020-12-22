@@ -2,7 +2,7 @@ import json, bcrypt, jwt, re
 import my_settings
 import random
 
-from django.db.models import Q
+from user.utils import login_decorator
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 from user.models import Member, RecentView, BoardLike, CommentLike
@@ -11,27 +11,11 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 
-def login_decorator(func):
-    def wrapper(self, request, *args, **kwargs):
-        try:
-            auth_token = request.headers.get('Authorization', None)
-            payload = jwt.decode(auth_token, my_settings.SECRET_KEY, my_settings.ALGORITHM)
-            request.user = Member.objects.get(id=payload['user'])
-
-        except Member.DoesNotExist:
-            return JsonResponse({"message" : "INVALID_USER"}, status=400)
-        except jwt.exceptions.DecodeError:
-            return JsonResponse({"message" : "INVALID_TOKEN"}, status=400)
-            
-        return func(self, request, *args, **kwargs)
-    return wrapper
-
 class EmailCheckView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
             email = data.get('email', None)           
-            password = data.get('password', None) 
             random_token = random.randint(10000, 100000)
 
             if email:
@@ -40,7 +24,7 @@ class EmailCheckView(View):
             if Member.objects.filter(email = data.get('email')).exists():
                 return JsonResponse({'message': 'EXISTS_USER'}, status=409)
 
-            Member.objects.create(
+            EmailCheck.objects.create(
                 email = data['email'],       
                 random_token = random_token
             )
@@ -57,13 +41,12 @@ class VerificationCodeView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            random_token = int(data['random_token'])
-            print(type(random_token))
+            random_token = data['random_token']
 
-            if not Member.objects.filter(random_token=random_token).exists():
-                return JsonResponse({'message': 'INCORRECT'}, status=400)
-
-            return JsonResponse({'code': 'CORRECT'}, status=201)
+            if not EmailCheck.objects.filter(random_token=random_token).exists():
+                return JsonResponse({'message': 'DENY'}, status=400)
+            
+            return JsonResponse({'code': 'ACCEPT'}, status=201)
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
@@ -77,7 +60,12 @@ class SignUpView(View):
                 return JsonResponse({'message': 'EXISTS_NICKNAME'}, status=409)
 
             hashed_password = bcrypt.hashpw(data.get('password').encode('UTF-8'), bcrypt.gensalt()).decode()
-            Member.objects.filter(email=email).update(password  = hashed_password, nickname  = data.get('nickname'))
+            
+            Member.objects.create(
+                email    = email,
+                password = hashed_password,
+                nickname = data['nickname']
+            )
  
             return JsonResponse({'message': 'SUCCESS'}, status=201)
             
@@ -117,9 +105,10 @@ class BoardLikeView(View):
                 board=Board.objects.get(id=data['board_id'])
             )
             return JsonResponse({'message': 'ADD'}, status=200)
-        delete_like = BoardLike.objects.get(board_id=data['board_id'], member_id=request.user)
-        delete_like.delete()
-
+    @login_decorator
+    def delete(self, request):    
+        delete_boardlike = BoardLike.objects.get(board_id=data['board_id'], member_id=request.user)
+        delete_boardlike.delete()
         return JsonResponse({'message':'DELETE'})
 
 class CommentLikeView(View):
@@ -133,9 +122,10 @@ class CommentLikeView(View):
                 comment=Comment.objects.get(id=data['comment_id'])
             )
             return JsonResponse({'message': 'ADD'}, status=200)
-        delete_like = CommentLike.objects.get(comment_id=data['comment_id'], member_id=request.user)
-        delete_like.delete()
-
+    @login_decorator
+    def delete(self, request):
+        delete_commentlike = CommentLike.objects.get(comment_id=data['comment_id'], member_id=request.user)
+        delete_comementlike.delete()
         return JsonResponse({'message':'DELETE'})
 
 class RecentView(View):
@@ -147,8 +137,11 @@ class RecentView(View):
             RecentView.objects.create(
                 member_id=request.user,
                 product_id=product_id,
-                viewed_at = RecentView.objects.all().order_by('-viewed_at')[0:50]  
+                viewed_at = RecentView.objects.all().order_by('-viewed_at')[0:10]  
             )
-            return JsonResponse({'message':'RECENTVIEWED ADD'},status=200)
-        
-
+            return JsonResponse({'message':'RECENTVIEWED_ADD'},status=200)
+    @login_decorator    
+    def delete(self, request):
+        delete_recentview = RecentView.objects.get(product_id=data['product_id'], member_id=request.user)
+        delete_recentview.delete()
+        return JsonResponse({'message':'DELETE'})

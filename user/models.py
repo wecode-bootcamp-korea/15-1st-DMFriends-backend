@@ -15,6 +15,13 @@ class Member(models.Model):
     
     class Meta:
         db_table = 'members'
+
+class EmailCheck(models.Model):
+    email        = models.EmailField(max_length=100, unique=True)
+    random_token = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'emailchecks'
     
 class BoardLike(models.Model):
     member  = models.ForeignKey('Member',on_delete = models.SET_NULL, null=True)

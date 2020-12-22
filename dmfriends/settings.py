@@ -151,13 +151,13 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
 )
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = '587'
-EMAIL_HOST_USER = 'dongmyofriends@gmail.com'
+EMAIL_HOST = my_settings.EMAIL_HOST
+EMAIL_PORT = my_settings.EMAIL_PORT
+EMAIL_HOST_USER = my_settings.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = my_settings.PASSWORD
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-#LOGGING
+
 LOGGING = {
     'disable_existing_loggers': False,
     'version': 1,
