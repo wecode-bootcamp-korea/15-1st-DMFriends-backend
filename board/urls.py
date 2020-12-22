@@ -1,7 +1,16 @@
 from django.urls    import path
-from board.views    import BoardListView, GetBoardView
+from board.views    import (
+                            BoardListView, 
+                            GetBoardView, 
+                            GetCommentView,
+                            LikeBoardView,
+                            UnLikeBoardView,
+                            )
 
 urlpatterns = [
-    path('/index', BoardListView.as_view()),
-    path('/feed', GetBoardView.as_view()),
+    path('/main', BoardListView.as_view()),
+    path('/feed/<int:board_id>', GetBoardView.as_view()),
+    path('/comment', GetCommentView.as_view()),
+    path('/like', LikeBoardView.as_view()),
+    path('/unlike', UnLikeBoardView.as_view()),
 ]
