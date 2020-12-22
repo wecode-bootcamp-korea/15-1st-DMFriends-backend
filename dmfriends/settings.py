@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'board',
     'product',
     'order',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -151,14 +150,13 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
 )
+
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'dongmyofriends@gmail.com'
 EMAIL_HOST_PASSWORD = my_settings.PASSWORD
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-<<<<<<< HEAD
-=======
 #LOGGING
 LOGGING = {
     'disable_existing_loggers': False,
@@ -177,4 +175,3 @@ LOGGING = {
         },
     },
 }
->>>>>>> c6720d2aa84aeba86a41de8bb00bc8eef763e98d

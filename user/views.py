@@ -30,7 +30,6 @@ class EmailCheckView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-<<<<<<< HEAD
             email = data.get('email', None)           
             password = data.get('password', None) 
             random_token = random.randint(10000, 100000)
@@ -41,8 +40,6 @@ class EmailCheckView(View):
             if Member.objects.filter(email = data.get('email')).exists():
                 return JsonResponse({'message': 'EXISTS_USER'}, status=409)
 
-=======
->>>>>>> c6720d2aa84aeba86a41de8bb00bc8eef763e98d
             Member.objects.create(
                 email = data['email'],       
                 random_token = random_token
@@ -89,7 +86,6 @@ class SignUpView(View):
 
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
-<<<<<<< HEAD
 
 class LoginView(View):
     def post(self, request):
@@ -156,5 +152,3 @@ class RecentView(View):
             return JsonResponse({'message':'RECENTVIEWED ADD'},status=200)
         
 
-=======
->>>>>>> c6720d2aa84aeba86a41de8bb00bc8eef763e98d
