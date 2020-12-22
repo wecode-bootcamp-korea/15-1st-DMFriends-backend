@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from django.http    import JsonResponse
 from django.views   import View
@@ -155,3 +156,34 @@ class UnLikeBoardView(View):
             return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
         except Board.MultipleObjectsReturned:
             return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
+
+# 5. 댓글 입력
+class AddCommentView(View):
+    #@login_decorator
+    def post(self, request):
+        try:
+            data        = json.loads(request.body)
+            board_id    = data['board_id']
+            member_id   = data['member_id']
+            content     = data['content']
+            print(content)
+            if board_id and member_id:
+                if content == "":
+                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
+                else:
+                    Comment.objects.create(
+                        content         = content,
+                        created_at      = datetime.datetime.now(),
+                        board_id        = board_id,
+                        writer_id       = member_id
+                    )
+            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+        except ValueError:
+            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
+        except Board.DoesNotExist:
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
+        except Board.MultipleObjectsReturned:
+            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
+
