@@ -14,6 +14,7 @@ class BoardListView(View):
         if Comment.objects.filter(board_id = board_id).exists() : 
             data = Comment.objects.filter(board_id = board_id).order_by('-created_at').first()
             comment_data = {
+                "id"            : data.id,
                 "writer"        : data.writer.nickname,
                 "content"       : data.content,
                 "content_num"   : Comment.objects.filter(board_id = board_id).count()
@@ -187,3 +188,51 @@ class AddCommentView(View):
         except Board.MultipleObjectsReturned:
             return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
 
+# 6. 댓글 좋아요
+class LikeCommentView(View):
+    #@login_decorator
+    def post(self, request):
+        try:
+            data        = json.loads(request.body)
+            member_id   = data['member_id']
+            comment_id  = data['comment_id']
+            if member_id and comment_id:
+                if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
+                    return JsonResponse({'message' : 'DUPLICATED_LIKE'}, status=400)
+                else:
+                    CommentLike.objects.create(
+                        is_like     = 1,
+                        comment_id  = comment_id,
+                        member_id   = member_id
+                    )
+            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+        except ValueError:
+            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
+        except Board.DoesNotExist:
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
+        except Board.MultipleObjectsReturned:
+            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
+# 7. 댓글 좋아요 취소
+class UnLikeCommentView(View):
+    #@login_decorator
+    def post(self, request):
+        data        = json.loads(request.body)
+        member_id   = data['member_id']
+        comment_id  = data['comment_id']
+        if member_id and comment_id:
+            if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
+                CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).delete()
+            else:
+                return JsonResponse({'message' : 'NO_LIKE_EXISTS'}, status=400)
+        try:
+            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+        except ValueError:
+            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
+        except Board.DoesNotExist:
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
+        except Board.MultipleObjectsReturned:
+            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
