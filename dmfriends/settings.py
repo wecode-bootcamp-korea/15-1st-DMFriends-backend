@@ -151,7 +151,12 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
 )
-
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'dongmyofriends@gmail.com'
+EMAIL_HOST_PASSWORD = my_settings.PASSWORD
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 <<<<<<< HEAD
 =======
 #LOGGING
