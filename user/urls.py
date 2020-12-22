@@ -1,4 +1,5 @@
 from django.urls import path
+<<<<<<< HEAD
 from user.views  import SignUpView, LoginView, EmailCheckView, VerificationCodeView
 
 urlpatterns=[
@@ -7,5 +8,7 @@ urlpatterns=[
     path('/echeck', EmailCheckView.as_view()),
     path('/vcode', VerificationCodeView.as_view()),
 
+=======
+>>>>>>> c6720d2aa84aeba86a41de8bb00bc8eef763e98d
 ]
 
