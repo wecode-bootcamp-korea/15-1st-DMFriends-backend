@@ -8,6 +8,7 @@ from board.views    import (
                             AddCommentView,
                             LikeCommentView,
                             UnLikeCommentView,
+                            AddSelfCommentView,
                             )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path('/addcomment', AddCommentView.as_view()),
     path('/likecomment', LikeCommentView.as_view()),
     path('/unlikecomment',UnLikeCommentView.as_view()),
+    path('/addselfcomment',AddSelfCommentView.as_view()),
 ]
