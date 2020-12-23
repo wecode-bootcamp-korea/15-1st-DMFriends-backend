@@ -47,6 +47,7 @@ class BoardListView(View):
         except Board.MultipleObjectsReturned:
             return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)
 
+
 # 2-1. 게시물 상세조회 - 게시물 호출        
 class GetBoardView(View):
     def get(self, request, board_id):
@@ -65,7 +66,6 @@ class GetBoardView(View):
                 "board_images"  : list(BoardImage.objects.filter(board_id = board_id).values_list('image_url', flat=True)[1:]),
                 "board_likes"   : BoardLike.objects.filter(board_id = board_id).count()
             }
-            print(board_data)
             return JsonResponse({'message' : 'SUCCESS', 'board_list' : board_data}, status = 200)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
@@ -76,8 +76,10 @@ class GetBoardView(View):
         except Board.MultipleObjectsReturned:
             return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)        
 
-# 2-2. 게시물 상세조회 - 댓글 목록 호출
-class GetCommentView(View):
+
+# 2-2. 게시물 상세조회 
+class CommentView(View):
+    ## 1. 댓글 목록 호출(GET)
     def get(self, request):
         try:
             board_id    = request.GET.get('board_id', None)
@@ -103,12 +105,67 @@ class GetCommentView(View):
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
+        except Comment.DoesNotExist:
             return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
+        except Comment.MultipleObjectsReturned:
             return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)   
 
-# 3. 게시물 좋아요
+    ## 2. 댓글 작성(POST)
+    #@login_decorator
+    def post(self, request):
+        try:
+            data        = json.loads(request.body)
+            board_id    = data['board_id']
+            member_id   = data['member_id']
+            content     = data['content']
+            if board_id and member_id:
+                if content == "":
+                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
+                else:
+                    Comment.objects.create(
+                        content         = content,
+                        created_at      = datetime.datetime.now(),
+                        board_id        = board_id,
+                        writer_id       = member_id
+                    )
+            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+        except ValueError:
+            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)       
+
+
+# 3. 대댓글 작성
+class AddSelfCommentView(View):
+    #@login_decorator
+    def post(self, request):
+        try:
+            data        = json.loads(request.body)
+            board_id    = data['board_id']
+            member_id   = data['member_id']
+            comment_id  = data['comment_id']
+            content     = data['content']
+            if board_id and member_id:
+                if content == "":
+                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
+                elif Comment.objects.filter(id=comment_id).exists():
+                    Comment.objects.create(
+                        content         = content,
+                        created_at      = datetime.datetime.now(),
+                        board_id        = board_id,
+                        self_comment_id = comment_id,
+                        writer_id       = member_id
+                    )
+            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+        except ValueError:
+            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
+        except Comment.DoesNotExist:
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500) 
+
+
+# 4. 게시물 좋아요
 class LikeBoardView(View):
     #@login_decorator
     def post(self, request):
@@ -137,7 +194,7 @@ class LikeBoardView(View):
             return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)   
 
 
-# 4. 게시물 좋아요 취소
+# 5. 게시물 좋아요 취소
 class UnLikeBoardView(View):
     #@login_decorator
     def post(self, request):
@@ -152,66 +209,6 @@ class UnLikeBoardView(View):
                 else:
                     return JsonResponse({'message' : 'NO_LIKE_EXISTS'}, status=400)
                     
-            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
-        except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
-
-# 5-1. 댓글 작성
-class AddCommentView(View):
-    #@login_decorator
-    def post(self, request):
-        try:
-            data        = json.loads(request.body)
-            board_id    = data['board_id']
-            member_id   = data['member_id']
-            content     = data['content']
-            if board_id and member_id:
-                if content == "":
-                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
-                else:
-                    Comment.objects.create(
-                        content         = content,
-                        created_at      = datetime.datetime.now(),
-                        board_id        = board_id,
-                        writer_id       = member_id
-                    )
-            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
-        except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
-
-# 5-2. 대댓글 작성
-class AddSelfCommentView(View):
-    #@login_decorator
-    def post(self, request):
-        try:
-            data        = json.loads(request.body)
-            board_id    = data['board_id']
-            member_id   = data['member_id']
-            comment_id  = data['comment_id']
-            content     = data['content']
-            if board_id and member_id:
-                if content == "":
-                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
-                elif Comment.objects.filter(id=comment_id).exists():
-                    Comment.objects.create(
-                        content         = content,
-                        created_at      = datetime.datetime.now(),
-                        board_id        = board_id,
-                        self_comment_id = comment_id,
-                        writer_id       = member_id
-                    )
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
@@ -245,10 +242,10 @@ class LikeCommentView(View):
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
+        except :
+            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
+
+
 # 7. 댓글 좋아요 취소
 class UnLikeCommentView(View):
     #@login_decorator
@@ -267,9 +264,7 @@ class UnLikeCommentView(View):
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
+        except :
+            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
 
 
