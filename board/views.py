@@ -72,9 +72,7 @@ class GetBoardView(View):
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
         except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)        
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)    
 
 
 # 2-2. 게시물 상세조회 
@@ -106,9 +104,9 @@ class CommentView(View):
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
         except Comment.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Comment.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)   
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)        
+        except :
+            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
 
     ## 2. 댓글 작성(POST)
     #@login_decorator
@@ -118,21 +116,21 @@ class CommentView(View):
             board_id    = data['board_id']
             member_id   = data['member_id']
             content     = data['content']
-            if board_id and member_id:
-                if content == "":
-                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
-                else:
-                    Comment.objects.create(
-                        content         = content,
-                        created_at      = datetime.datetime.now(),
-                        board_id        = board_id,
-                        writer_id       = member_id
-                    )
+
+            if content == "":
+                return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
+            else:
+                Comment.objects.create(
+                    content         = content,
+                    created_at      = datetime.datetime.now(),
+                    board_id        = board_id,
+                    writer_id       = member_id
+                )
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
         except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)       
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)          
+        except :
+            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500) 
 
 
 # 3. 대댓글 작성
@@ -145,6 +143,7 @@ class AddSelfCommentView(View):
             member_id   = data['member_id']
             comment_id  = data['comment_id']
             content     = data['content']
+
             if board_id and member_id:
                 if content == "":
                     return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
@@ -159,10 +158,8 @@ class AddSelfCommentView(View):
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Comment.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500) 
+        except :
+            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
 
 
 # 4. 게시물 좋아요
@@ -174,53 +171,42 @@ class LikeBoardView(View):
             board_id    = data['board_id']
             member_id   = data['member_id']
 
-            if board_id and member_id:
-                if BoardLike.objects.filter(board_id=board_id, member_id=member_id).exists():
-                    return JsonResponse({'message' : 'DUPLICATED_LIKE'}, status=400)
+            if BoardLike.objects.filter(board_id=board_id, member_id=member_id).exists():
+                if BoardLike.objects.filter(board_id=board_id, member_id=member_id)[0].is_like == 1:
+                    BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=0)
+                    return JsonResponse(
+                        {
+                            'message' : 'SUCCESS', 
+                            'member_id' : member_id, 
+                            'like' : False
+                        }, status = 200)
                 else:
-                    BoardLike.objects.create(
-                        is_like     = 1,
-                        board_id    = board_id,
-                        member_id   = member_id
-                    )
-            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+                    BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=1)
+                    return JsonResponse(
+                        {
+                            'message' : 'SUCCESS', 
+                            'member_id' : member_id, 
+                            'like' : True
+                        }, status = 200)
+            else:
+                BoardLike.objects.create(
+                    is_like     = 1,
+                    board_id    = board_id,
+                    member_id   = member_id
+                )
+                return JsonResponse(
+                    {
+                        'message' : 'SUCCESS', 
+                        'member_id' : member_id, 
+                        'like' : True
+                    }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)   
+        except :
+            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500) 
 
 
-# 5. 게시물 좋아요 취소
-class UnLikeBoardView(View):
-    #@login_decorator
-    def post(self, request):
-        try:
-            data        = json.loads(request.body)
-            board_id    = data['board_id']
-            member_id   = data['member_id']
-
-            if board_id and member_id:
-                if BoardLike.objects.filter(board_id=board_id, member_id=member_id).exists():
-                    BoardLike.objects.filter(board_id=board_id, member_id=member_id).delete()
-                else:
-                    return JsonResponse({'message' : 'NO_LIKE_EXISTS'}, status=400)
-                    
-            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
-        except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500) 
-
-
-# 6. 댓글 좋아요
+# 5. 댓글 좋아요
 class LikeCommentView(View):
     #@login_decorator
     def post(self, request):
@@ -228,43 +214,41 @@ class LikeCommentView(View):
             data        = json.loads(request.body)
             member_id   = data['member_id']
             comment_id  = data['comment_id']
-            if member_id and comment_id:
-                if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
-                    return JsonResponse({'message' : 'DUPLICATED_LIKE'}, status=400)
-                else:
-                    CommentLike.objects.create(
-                        is_like     = 1,
-                        comment_id  = comment_id,
-                        member_id   = member_id
-                    )
-            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
-        except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
-        except :
-            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
 
-
-# 7. 댓글 좋아요 취소
-class UnLikeCommentView(View):
-    #@login_decorator
-    def post(self, request):
-        data        = json.loads(request.body)
-        member_id   = data['member_id']
-        comment_id  = data['comment_id']
-        if member_id and comment_id:
             if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
-                CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).delete()
+                if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id)[0].is_like == 1:
+                    CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=0)
+                    return JsonResponse(
+                        {
+                            'message' : 'SUCCESS', 
+                            'member_id' : member_id, 
+                            'like' : False
+                        }, status = 200)
+                else:
+                    CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=1)
+                    return JsonResponse(
+                        {
+                            'message' : 'SUCCESS', 
+                            'member_id' : member_id, 
+                            'like' : True
+                        }, status = 200)
             else:
-                return JsonResponse({'message' : 'NO_LIKE_EXISTS'}, status=400)
-        try:
-            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+                CommentLike.objects.create(
+                    is_like     = 1,
+                    comment_id  = comment_id,
+                    member_id   = member_id
+                )
+            return JsonResponse(
+                {
+                    'message' : 'SUCCESS', 
+                    'member_id' : member_id, 
+                    'like' : True
+                }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except ValueError:
-            return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
         except :
             return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
+
+
 
 

@@ -5,9 +5,7 @@ from board.views    import (
                             CommentView,
                             AddSelfCommentView,
                             LikeBoardView,
-                            UnLikeBoardView,
                             LikeCommentView,
-                            UnLikeCommentView,
                             )
 
 urlpatterns = [
@@ -16,7 +14,5 @@ urlpatterns = [
     path('/comment'             , CommentView.as_view()),
     path('/addselfcomment'      , AddSelfCommentView.as_view()),
     path('/like'                , LikeBoardView.as_view()),
-    path('/unlike'              , UnLikeBoardView.as_view()),
     path('/likecomment'         , LikeCommentView.as_view()),
-    path('/unlikecomment'       ,UnLikeCommentView.as_view()),
 ]
