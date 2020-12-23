@@ -203,7 +203,7 @@ class LikeBoardView(View):
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except :
-            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500) 
+            return JsonResponse({'message' : 'NO_LIKE_EXIST'}, status = 500) 
 
 
 # 5. 댓글 좋아요
@@ -247,7 +247,7 @@ class LikeCommentView(View):
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except :
-            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
+            return JsonResponse({'message' : 'NO_LIKE_EXIST'}, status = 500)
 
 
 
