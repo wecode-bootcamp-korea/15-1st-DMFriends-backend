@@ -23,7 +23,7 @@ with open(CSV_PATH) as csv_file:
     rows = csv.reader(csv_file, delimiter=',')
     next(rows)
     for row in rows:
-        Board.objects.create(uploader=row[0], created_at=row[1], title=row[2], content=row[3], theme=[4])
+        Board.objects.create(uploader=row[0], created_at=row[1], title=row[2], content=row[3], theme=row[4])
 
 CSV_PATH = './board_images.csv'
 with open(CSV_PATH) as csv_file:

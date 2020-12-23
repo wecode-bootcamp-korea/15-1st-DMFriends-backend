@@ -11,8 +11,6 @@ from user.utils import login_decorator
 from user.models import (
     Member,
     RecentView,
-    BoardLike,
-    CommentLike,
     EmailCheck
 )
 from board.models import Board, Comment
@@ -104,7 +102,7 @@ class LoginView(View):
 
 class RecentView(View):
     @login_decorator
-    def POST(self, request):        
+    def post(self, request):        
         data = json.loads(request.body)
         if not RecentView.objects.filter(product_id=product_id, member_id=request.user).exists():
             RecentView.objects.create(
@@ -113,7 +111,7 @@ class RecentView(View):
             )
             return JsonResponse({'message': 'RECENTVIEWED_ADD'}, status=200)
     @login_decorator
-    def GET(self, request):
+    def get(self, request):
         recentviews         = Recentview.objects.filter(member_id=request.user).order_by('viewed_at')[:10]
         recentview_products = recentviews.product
         

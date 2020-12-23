@@ -9,11 +9,7 @@ class Order(models.Model):
     member            = models.ForeignKey('user.Member', on_delete = models.SET_NULL, null=True)
     delivery_message  = models.CharField(max_length=500)
     order_date        = models.DateField( auto_now = True)
-<<<<<<< HEAD
-    payments          = models.ForeignKey('Payment', on_delete=models.SET_NULL, null=True)
-=======
     payments          = models.ForeignKey( 'Payment', on_delete   = models.SET_NULL, null=True)
->>>>>>> a4899e74ad208bb4fd56bb3c547d19f6b520849e
     
     class Meta:
         db_table = "orders"
@@ -30,11 +26,7 @@ class Address(models.Model):
 
 class OrderStatus(models.Model):
     name = models.CharField(max_length=45)
-<<<<<<< HEAD
-
-=======
     
->>>>>>> a4899e74ad208bb4fd56bb3c547d19f6b520849e
     class Meta:
         db_table = "orderstatuses"
 
@@ -49,11 +41,7 @@ class Cart(models.Model):
         db_table = "carts"
 
 class Payment(models.Model):
-<<<<<<< HEAD
-    kakao_pay_id    = models.CharField(max_length=45)
-=======
     kakao_pay       = models.CharField(max_length=45)
->>>>>>> a4899e74ad208bb4fd56bb3c547d19f6b520849e
     virtual_account = models.CharField(max_length=45)
     payment_type   = models.ForeignKey('PaymentType',on_delete = models.SET_NULL, null= True, default = 1)
     member          = models.ForeignKey('user.Member',on_delete = models.SET_NULL, null= True, default = 1)
