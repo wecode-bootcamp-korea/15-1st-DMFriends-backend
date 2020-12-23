@@ -14,7 +14,8 @@ from .models      import  (
     Review
 )
 
-from user.models  import Member #login_decorator
+from user.models  import Member
+from user.utils   import login_decorator
 
 
 class ProductListView(View):
@@ -67,6 +68,21 @@ class ProductDetailView(View):
 #한국어 인코딩이 안됨
 
 class ReviewView(View):
+    #@login_decorator
+    def get(self, request, product_id):
+        review = Review.objects.filter(product_id=product_id)
+        result = [{
+            "id"          : item.id,
+            "content"     : item.content,
+            "created_at"  : item.created_at[:10],
+            "star_rating" : item.star_rating,
+            "member_id"   : item.member_id.nickname,
+            "product_id"  : item.product_id,
+            "is_like"     : 1,
+        }for item in review]
+
+        return JsonResponse({"message" : "SUCCESS", "result" : result}, status = 200)
+
     #@login_decorator
     def post(self, request, product_id):
         data = json.loads(request.body)

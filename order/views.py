@@ -3,7 +3,15 @@ import json
 from django.views     import View
 from django.http      import JsonResponse
  
-from .models        import Order, Address, OrderStatus, Cart, Payment, PaymentType, PaymentStatus
+from .models        import (
+    Order, 
+    Address, 
+    OrderStatus, 
+    Cart, 
+    Payment, 
+    PaymentType, 
+    PaymentStatus
+)
 from user.models    import Member
 from product.models import Product, ProductImage
 
@@ -12,7 +20,7 @@ import random
 from user.utils     import login_decorator
 
 class CartView(View):
-    @login_decorator
+    #@login_decorator
     def get(self, request):
         cart = Cart.objects.all()
         result = [{
@@ -26,7 +34,7 @@ class CartView(View):
 
         return JsonResponse({"message" : "SUCCESS", "result" : result}, status = 200)
     
-    @login_decorator
+    #@login_decorator
     def post(self, request):
 
         ORDER_STATUS_ID = 1
@@ -57,7 +65,7 @@ class CartView(View):
         
         return JsonResponse({"message" : "SUCCESS"}, status = 200)
     
-    @login_decorator
+    #@login_decorator
     def delete(self, request):
         product_ids = request.GET.getlist('product_id', None)
         for id in product_ids:
@@ -66,7 +74,7 @@ class CartView(View):
 
 class CartModifyView(View):
 
-    @login_decorator
+    #@login_decorator
     def post(self, request, cart_id): 
         data = json.loads(request.body)
 
@@ -77,7 +85,7 @@ class CartModifyView(View):
 
         return JsonResponse({'message' : 'SUCCESS'}, status = 200)
 
-    @login_decorator
+    #@login_decorator
     def delete(self, request, cart_id): #장바구니에서 직접 삭제하기 (Path parameter)
         Cart.objects.filter(id=cart_id).delete()
         return JsonResponse({"message" : "SUCCESS"}, status = 200)
