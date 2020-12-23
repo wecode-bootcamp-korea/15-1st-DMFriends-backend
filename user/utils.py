@@ -1,12 +1,16 @@
 import json, bcrypt, jwt, re
+from my_settings import SECRET_KEY, ALGORITHM
+from django.http import JsonResponse
 from user.models import Member, RecentView, BoardLike, CommentLike
+
 
 def login_decorator(func):
     def wrapper(self, request, *args, **kwargs):
         try:
-            auth_token = request.headers.get('Authorization', None)
-            payload = jwt.decode(auth_token, my_settings.SECRET_KEY, my_settings.ALGORITHM)
-            request.user = Member.objects.get(id=payload['user'])
+            access_token = request.headers.get('Authorization', None)
+            payload = jwt.decode(access_token, SECRET_KEY, algorithm=ALGORITHM)
+            user = Member.objects.get(id=payload['member_id'])
+            request.user = user
 
         except Member.DoesNotExist:
             return JsonResponse({"message" : "INVALID_USER"}, status=400)
