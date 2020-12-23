@@ -8,10 +8,24 @@ from board.models   import Board, BoardImage, Comment
 from user.models    import Member, BoardLike, CommentLike
 from user.utils     import login_decorator, login_check
 
+# 로그인 여부에 따른 게시물 좋아요 체크
+def check_boardLike(self, request, board_id):
+    result = False
+    if request.user:
+        result = BoardLike.objects.filter(board_id= board_id, member_id = request.user.id).exists()
+    return result
+
+# 로그인 여부에 따른 댓글 좋아요 체크
+def check_commentLike(self, request, comment_id):
+    result = False
+    if request.user:
+        result = CommentLike.objects.filter(comment_id= comment_id, member_id = request.user.id).exists()
+    return result
+
 # 1. 동묘프렌즈 첫 접속 - '오늘' 탭 게시물 로드
 class BoardListView(View):
     def check_comment(self, board_id):
-        if Comment.objects.filter(board_id = board_id).exists() : 
+        if Comment.objects.filter(board_id = board_id).exists(): 
             data = Comment.objects.filter(board_id = board_id).order_by('-created_at').first()
             comment_data = {
                 "id"            : data.id,
@@ -29,8 +43,7 @@ class BoardListView(View):
             if request.user != None:
                 member_id  = request.user.id
             else:
-                member_id  = 17
-            print(member_id)
+                member_id = 0
             board_list  = [{
                 "id"            : board.id,
                 "uploader"      : board.uploader,
@@ -41,9 +54,10 @@ class BoardListView(View):
                 "thumb_image"   : BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[0],
                 "board_images"  : list(BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[1:]),
                 "board_likes"   : BoardLike.objects.filter(board_id = board.id).count(),
-                "if_i_liked"    : BoardLike.objects.filter(member_id=member_id, board_id=board.id).exists(),
+                "if_i_liked"    : check_boardLike(self, request, board.id),
                 "comment"       : BoardListView.check_comment(self, board.id)
             } for board in Board.objects.all()]  
+
             return JsonResponse({'message' : 'SUCCESS', 'board_list' : board_list}, status = 200)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
@@ -57,9 +71,12 @@ class BoardListView(View):
 
 # 2-1. 게시물 상세조회 - 게시물 호출        
 class GetBoardView(View):
+    @login_check
     def get(self, request, board_id):
         try:
-            member_id   = request.user.id
+            if request.user != None:
+                member_id  = request.user.id
+
             data = Board.objects.filter(id = board_id)[0]
             
             # 리턴보낼 board_data 준비
@@ -70,10 +87,10 @@ class GetBoardView(View):
                 "title"         : data.title,
                 "content"       : data.content,
                 "created_at"    : data.created_at,
-                "thumb_image"   : BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[0],
+                "thumb_image"   : BoardImage.objects.filter(board_id = board_id).values_list('image_url', flat=True)[0],
                 "board_images"  : list(BoardImage.objects.filter(board_id = board_id).values_list('image_url', flat=True)[1:]),
                 "board_likes"   : BoardLike.objects.filter(board_id = board_id).count(),
-                "if_i_liked"    : BoardLike.objects.filter(member_id=member_id, board_id=board.id).exists(),
+                "if_i_liked"    : check_boardLike(self, request, board_id)
             }
             return JsonResponse({'message' : 'SUCCESS', 'board_list' : board_data}, status = 200)
         except KeyError:
@@ -87,9 +104,11 @@ class GetBoardView(View):
 # 2-2. 게시물 상세조회 
 class CommentView(View):
     ## 1. 댓글 목록 호출(GET)
+    @login_check
     def get(self, request):
         try:
-            member_id   = request.user.id
+            if request.user != None:
+                member_id  = request.user.id
 
             board_id    = request.GET.get('board_id', None)
             sort        = request.GET.get('sort', None)
@@ -106,7 +125,7 @@ class CommentView(View):
                     "content"   : comment['content'],
                     "is_liked"  : CommentLike.objects.filter(comment_id = comment['id'], is_like = 1).count(), 
                     "created_at": comment['created_at'],
-                    "if_i_liked": CommentLike.objects.filter(member_id=member_id, comment_id=comment['id']).exists(),
+                    "if_i_liked": check_commentLike(self, request, comment['id']),
                 } for comment in data]
             else:
                 comment_data = ''
@@ -121,10 +140,13 @@ class CommentView(View):
             return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
 
     ## 2. 댓글 작성(POST)
-    @login_decorator
+    @login_check
     def post(self, request):
         try:
-            member_id   = request.user.id
+            if request.user != None:
+                member_id  = request.user.id
+            else:
+                return JsonResponse({"message" : "INVALID_USER"}, status=400) ## 확인부탁드려요!!
 
             data        = json.loads(request.body)
             board_id    = data['board_id']
@@ -148,10 +170,13 @@ class CommentView(View):
 
 # 3. 대댓글 작성
 class AddSelfCommentView(View):
-    @login_decorator
+    @login_check
     def post(self, request):
         try:
-            member_id   = request.user.id
+            if request.user != None:
+                member_id  = request.user.id
+            else:
+                return JsonResponse({"message" : "INVALID_USER"}, status=400) ## 확인부탁드려요!!
 
             data        = json.loads(request.body)
             board_id    = data['board_id']
@@ -178,10 +203,13 @@ class AddSelfCommentView(View):
 
 # 4. 게시물 좋아요
 class LikeBoardView(View):
-    @login_decorator
+    @login_check
     def post(self, request):
         try:
-            member_id   = request.user.id
+            if request.user != None:
+                member_id  = request.user.id
+            else:
+                return JsonResponse({"message" : "INVALID_USER"}, status=400) 
 
             data        = json.loads(request.body)
             board_id    = data['board_id']
@@ -223,10 +251,13 @@ class LikeBoardView(View):
 
 # 5. 댓글 좋아요
 class LikeCommentView(View):
-    @login_decorator
+    @login_check
     def post(self, request):
         try:
-            member_id   = request.user.id
+            if request.user != None:
+                member_id  = request.user.id
+            else:
+                return JsonResponse({"message" : "INVALID_USER"}, status=400) 
 
             data        = json.loads(request.body)
             comment_id  = data['comment_id']
