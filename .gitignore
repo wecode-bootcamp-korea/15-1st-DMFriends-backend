@@ -13,7 +13,7 @@ db.sqlite3-journal
 media
 my_settings.py
 board_images.csv
-board_likkes.csv
+board_likes.csv
 boards.csv
 comment_likes.csv
 comments.csv

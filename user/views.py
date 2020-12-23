@@ -1,15 +1,15 @@
-import json, bcrypt, jwt, re
-import my_settings
-import random
+import json, bcrypt, jwt, re, random
 
-from user.utils import login_decorator
-from django.views import View
-from django.http import JsonResponse, HttpResponse
-from user.models import Member, RecentView, BoardLike, CommentLike, EmailCheck
-from board.models import Board, Comment
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
+from django.views import View
+from django.http import JsonResponse, HttpResponse
+
+import my_settings
+from user.utils import login_decorator
+from user.models import Member, RecentView, BoardLike, CommentLike, EmailCheck
+from board.models import Board, Comment
 
 class EmailCheckView(View):
     def post(self, request):
@@ -138,16 +138,27 @@ class CommentLikeView(View):
 
 class RecentView(View):
     @login_decorator
-    def get(self, request):        
-        product_id = request.GET.get('product_id')
-
-        if RecentView.objects.filter(product_id=product_id, member_id=request.user).exists():
+    def POST(self, request):        
+        data = json.loads(request.body)
+        if not RecentView.objects.filter(product_id=product_id, member_id=request.user).exists():
             RecentView.objects.create(
                 member_id   = request.user,
-                product_id  = product_id,
-                viewed_at   = RecentView.objects.all().order_by('-viewed_at')[0:10]  
+                product_id  = Product.objects.get(id=data['product_id']), 
             )
-            return JsonResponse({'message':'RECENTVIEWED_ADD'},status=200)
+            return JsonResponse({'message': 'RECENTVIEWED_ADD'}, status=200)
+    @login_decorator
+    def GET(self, request):
+        recentviews         = Recentview.objects.filter(member_id=request.user).order_by('viewed_at')[:10]
+        recentview_products = recentviews.product
+        
+        result = [{
+            'name': item.name,
+            'id': item.id,
+            'price': item.price,
+            'image_url': item.image_url,        
+        }for item in recentview_products]
+
+        return JsonResponse({'message': 'SUCCESS', 'result': result}, status = 200)
     @login_decorator    
     def delete(self, request):
         delete_recentview = RecentView.objects.get(product_id=data['product_id'], member_id=request.user)
