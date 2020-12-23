@@ -48,10 +48,10 @@ class ProductDetailView(View):
             if Product.objects.filter(id=product_id).exists():
                 products =  Product.objects.filter(id=product_id).values()
 
-                product_list = [{
+                result = [{
                     "id"            : item["id"],
                     "name"          : item["name"],
-                    "price"         : item["price"],
+                    "price"         : int(item["price"]),
                     "star_rating"   : item["star_rating"],
                     "description"   : item["description"],
                     "category_id"   : item["category_id"],
@@ -62,7 +62,7 @@ class ProductDetailView(View):
                     "images_slider" : list(ProductImage.objects.filter(product_id = item["id"]).values_list('image_url', flat=True))
                 }for item in products]            
                 
-                return JsonResponse({"result" : product_list}, status = 200)
+                return JsonResponse({"result" : result}, status = 200)
             return JsonResponse({"message" : "PRODUCT_DOES_NOT_EXIST"}, status=404)
 #한국어 인코딩이 안됨
 
