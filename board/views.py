@@ -6,7 +6,7 @@ from django.views   import View
 
 from board.models   import Board, BoardImage, Comment
 from user.models    import Member, BoardLike, CommentLike
-#from user.utils     import login_decorator
+from user.utils     import login_decorator, login_check
 
 # 1. 동묘프렌즈 첫 접속 - '오늘' 탭 게시물 로드
 class BoardListView(View):
@@ -23,9 +23,15 @@ class BoardListView(View):
             comment_data = ''
         return comment_data
 
+    @login_check
     def get(self, request):
         try: 
-            board_list = [{
+            if request.user != None:
+                member_id  = request.user.id
+            else:
+                member_id  = 17
+            print(member_id)
+            board_list  = [{
                 "id"            : board.id,
                 "uploader"      : board.uploader,
                 "theme"         : board.theme,
@@ -35,6 +41,7 @@ class BoardListView(View):
                 "thumb_image"   : BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[0],
                 "board_images"  : list(BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[1:]),
                 "board_likes"   : BoardLike.objects.filter(board_id = board.id).count(),
+                "if_i_liked"    : BoardLike.objects.filter(member_id=member_id, board_id=board.id).exists(),
                 "comment"       : BoardListView.check_comment(self, board.id)
             } for board in Board.objects.all()]  
             return JsonResponse({'message' : 'SUCCESS', 'board_list' : board_list}, status = 200)
@@ -52,8 +59,9 @@ class BoardListView(View):
 class GetBoardView(View):
     def get(self, request, board_id):
         try:
+            member_id   = request.user.id
             data = Board.objects.filter(id = board_id)[0]
-
+            
             # 리턴보낼 board_data 준비
             board_data = {
                 "id"            : data.id,
@@ -64,7 +72,8 @@ class GetBoardView(View):
                 "created_at"    : data.created_at,
                 "thumb_image"   : BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[0],
                 "board_images"  : list(BoardImage.objects.filter(board_id = board_id).values_list('image_url', flat=True)[1:]),
-                "board_likes"   : BoardLike.objects.filter(board_id = board_id).count()
+                "board_likes"   : BoardLike.objects.filter(board_id = board_id).count(),
+                "if_i_liked"    : BoardLike.objects.filter(member_id=member_id, board_id=board.id).exists(),
             }
             return JsonResponse({'message' : 'SUCCESS', 'board_list' : board_data}, status = 200)
         except KeyError:
@@ -80,6 +89,8 @@ class CommentView(View):
     ## 1. 댓글 목록 호출(GET)
     def get(self, request):
         try:
+            member_id   = request.user.id
+
             board_id    = request.GET.get('board_id', None)
             sort        = request.GET.get('sort', None)
             page        = int(request.GET.get("page", 1) or 1)
@@ -94,7 +105,8 @@ class CommentView(View):
                     "writer"    : Member.objects.get(id=comment['writer_id']).nickname,
                     "content"   : comment['content'],
                     "is_liked"  : CommentLike.objects.filter(comment_id = comment['id'], is_like = 1).count(), 
-                    "created_at": comment['created_at']
+                    "created_at": comment['created_at'],
+                    "if_i_liked": CommentLike.objects.filter(member_id=member_id, comment_id=comment['id']).exists(),
                 } for comment in data]
             else:
                 comment_data = ''
@@ -109,12 +121,13 @@ class CommentView(View):
             return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
 
     ## 2. 댓글 작성(POST)
-    #@login_decorator
+    @login_decorator
     def post(self, request):
         try:
+            member_id   = request.user.id
+
             data        = json.loads(request.body)
             board_id    = data['board_id']
-            member_id   = data['member_id']
             content     = data['content']
 
             if content == "":
@@ -135,12 +148,13 @@ class CommentView(View):
 
 # 3. 대댓글 작성
 class AddSelfCommentView(View):
-    #@login_decorator
+    @login_decorator
     def post(self, request):
         try:
+            member_id   = request.user.id
+
             data        = json.loads(request.body)
             board_id    = data['board_id']
-            member_id   = data['member_id']
             comment_id  = data['comment_id']
             content     = data['content']
 
@@ -164,12 +178,13 @@ class AddSelfCommentView(View):
 
 # 4. 게시물 좋아요
 class LikeBoardView(View):
-    #@login_decorator
+    @login_decorator
     def post(self, request):
         try:
+            member_id   = request.user.id
+
             data        = json.loads(request.body)
             board_id    = data['board_id']
-            member_id   = data['member_id']
 
             if BoardLike.objects.filter(board_id=board_id, member_id=member_id).exists():
                 if BoardLike.objects.get(board_id=board_id, member_id=member_id).is_like == 1:
@@ -208,11 +223,12 @@ class LikeBoardView(View):
 
 # 5. 댓글 좋아요
 class LikeCommentView(View):
-    #@login_decorator
+    @login_decorator
     def post(self, request):
         try:
+            member_id   = request.user.id
+
             data        = json.loads(request.body)
-            member_id   = data['member_id']
             comment_id  = data['comment_id']
 
             if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
