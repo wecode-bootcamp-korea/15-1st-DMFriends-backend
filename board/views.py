@@ -6,7 +6,7 @@ from django.views   import View
 
 from board.models   import Board, BoardImage, Comment
 from user.models    import Member, BoardLike, CommentLike
-from user.utils     import login_decorator, login_check
+from user.utils     import login_check
 
 # 로그인 여부에 따른 게시물 좋아요 체크
 def check_boardLike(self, request, board_id):
@@ -40,10 +40,6 @@ class BoardListView(View):
     @login_check
     def get(self, request):
         try: 
-            if request.user != None:
-                member_id  = request.user.id
-            else:
-                member_id = 0
             board_list  = [{
                 "id"            : board.id,
                 "uploader"      : board.uploader,
@@ -54,7 +50,7 @@ class BoardListView(View):
                 "thumb_image"   : BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[0],
                 "board_images"  : list(BoardImage.objects.filter(board_id = board.id).values_list('image_url', flat=True)[1:]),
                 "board_likes"   : BoardLike.objects.filter(board_id = board.id).count(),
-                "if_i_liked"    : check_boardLike(self, request, board.id),
+                "member_liked"    : check_boardLike(self, request, board.id),
                 "comment"       : BoardListView.check_comment(self, board.id)
             } for board in Board.objects.all()]  
 
@@ -74,9 +70,6 @@ class GetBoardView(View):
     @login_check
     def get(self, request, board_id):
         try:
-            if request.user != None:
-                member_id  = request.user.id
-
             data = Board.objects.filter(id = board_id)[0]
             
             # 리턴보낼 board_data 준비
@@ -90,7 +83,7 @@ class GetBoardView(View):
                 "thumb_image"   : BoardImage.objects.filter(board_id = board_id).values_list('image_url', flat=True)[0],
                 "board_images"  : list(BoardImage.objects.filter(board_id = board_id).values_list('image_url', flat=True)[1:]),
                 "board_likes"   : BoardLike.objects.filter(board_id = board_id).count(),
-                "if_i_liked"    : check_boardLike(self, request, board_id)
+                "member_liked"    : check_boardLike(self, request, board_id)
             }
             return JsonResponse({'message' : 'SUCCESS', 'board_list' : board_data}, status = 200)
         except KeyError:
@@ -107,9 +100,6 @@ class CommentView(View):
     @login_check
     def get(self, request):
         try:
-            if request.user != None:
-                member_id  = request.user.id
-
             board_id    = request.GET.get('board_id', None)
             sort        = request.GET.get('sort', None)
             page        = int(request.GET.get("page", 1) or 1)
@@ -125,7 +115,7 @@ class CommentView(View):
                     "content"   : comment['content'],
                     "is_liked"  : CommentLike.objects.filter(comment_id = comment['id'], is_like = 1).count(), 
                     "created_at": comment['created_at'],
-                    "if_i_liked": check_commentLike(self, request, comment['id']),
+                    "member_liked": check_commentLike(self, request, comment['id']),
                 } for comment in data]
             else:
                 comment_data = ''
@@ -143,9 +133,7 @@ class CommentView(View):
     @login_check
     def post(self, request):
         try:
-            if request.user != None:
-                member_id  = request.user.id
-            else:
+            if request.user == None:
                 return JsonResponse({"message" : "INVALID_USER"}, status=400) ## 확인부탁드려요!!
 
             data        = json.loads(request.body)
@@ -159,7 +147,7 @@ class CommentView(View):
                     content         = content,
                     created_at      = datetime.datetime.now(),
                     board_id        = board_id,
-                    writer_id       = member_id
+                    writer_id       = request.user.id
                 )
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
         except KeyError:
@@ -173,26 +161,23 @@ class AddSelfCommentView(View):
     @login_check
     def post(self, request):
         try:
-            if request.user != None:
-                member_id  = request.user.id
-            else:
+            if request.user == None:
                 return JsonResponse({"message" : "INVALID_USER"}, status=400) ## 확인부탁드려요!!
 
             data        = json.loads(request.body)
             board_id    = data['board_id']
             comment_id  = data['comment_id']
             content     = data['content']
-
-            if board_id and member_id:
-                if content == "":
-                    return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
-                elif Comment.objects.filter(id=comment_id).exists():
+            if content == "":
+                return JsonResponse({'message' : 'COMMENT_REQUIRED'}, status=400)
+            if board_id and request.user:
+                if Comment.objects.filter(id=comment_id).exists():
                     Comment.objects.create(
                         content         = content,
                         created_at      = datetime.datetime.now(),
                         board_id        = board_id,
                         self_comment_id = comment_id,
-                        writer_id       = member_id
+                        writer_id       = request.user.id
                     )
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
         except KeyError:
@@ -206,41 +191,39 @@ class LikeBoardView(View):
     @login_check
     def post(self, request):
         try:
-            if request.user != None:
-                member_id  = request.user.id
-            else:
+            if request.user == None:
                 return JsonResponse({"message" : "INVALID_USER"}, status=400) 
-
+            
             data        = json.loads(request.body)
             board_id    = data['board_id']
 
-            if BoardLike.objects.filter(board_id=board_id, member_id=member_id).exists():
-                if BoardLike.objects.get(board_id=board_id, member_id=member_id).is_like == 1:
-                    BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=0)
+            if BoardLike.objects.filter(board_id=board_id, member_id=request.user.id).exists():
+                if BoardLike.objects.get(board_id=board_id, member_id=request.user.id).is_like == 1:
+                    BoardLike.objects.filter(board_id=board_id, member_id=request.user.id).update(is_like=0)
                     return JsonResponse(
                         {
                             'message' : 'SUCCESS', 
-                            'member_id' : member_id, 
+                            'member_id' : request.user.id, 
                             'like' : False
                         }, status = 200)
                 
-                BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=1)
+                BoardLike.objects.filter(board_id=board_id, member_id=request.user.id).update(is_like=1)
                 return JsonResponse(
                     {
                         'message' : 'SUCCESS', 
-                        'member_id' : member_id, 
+                        'member_id' : request.user.id, 
                         'like' : True
                     }, status = 200)
             
             BoardLike.objects.create(
                 is_like     = 1,
                 board_id    = board_id,
-                member_id   = member_id
+                member_id   = request.user.id
             )
             return JsonResponse(
                 {
                     'message' : 'SUCCESS', 
-                    'member_id' : member_id, 
+                    'member_id' : request.user.id, 
                     'like' : True
                 }, status = 201)
         except KeyError:
@@ -254,41 +237,39 @@ class LikeCommentView(View):
     @login_check
     def post(self, request):
         try:
-            if request.user != None:
-                member_id  = request.user.id
-            else:
+            if request.user == None:
                 return JsonResponse({"message" : "INVALID_USER"}, status=400) 
 
             data        = json.loads(request.body)
             comment_id  = data['comment_id']
 
-            if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
-                if CommentLike.objects.get(member_id=member_id, comment_id=comment_id).is_like == 1:
-                    CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=0)
+            if CommentLike.objects.filter(member_id=request.user.id, comment_id=comment_id).exists():
+                if CommentLike.objects.get(member_id=request.user.id, comment_id=comment_id).is_like == 1:
+                    CommentLike.objects.filter(member_id=request.user.id, comment_id=comment_id).update(is_like=0)
                     return JsonResponse(
                         {
                             'message' : 'SUCCESS', 
-                            'member_id' : member_id, 
+                            'member_id' : request.user.id, 
                             'like' : False
                         }, status = 200)
                 
-                CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=1)
+                CommentLike.objects.filter(member_id=request.user.id, comment_id=comment_id).update(is_like=1)
                 return JsonResponse(
                     {
                         'message' : 'SUCCESS', 
-                        'member_id' : member_id, 
+                        'member_id' : request.user.id, 
                         'like' : True
                     }, status = 200)
             
             CommentLike.objects.create(
                 is_like     = 1,
                 comment_id  = comment_id,
-                member_id   = member_id
+                member_id   = request.user.id
             )
             return JsonResponse(
                 {
                     'message' : 'SUCCESS', 
-                    'member_id' : member_id, 
+                    'member_id' : request.user.id, 
                     'like' : True
                 }, status = 201)
         except KeyError:
