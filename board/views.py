@@ -172,7 +172,7 @@ class LikeBoardView(View):
             member_id   = data['member_id']
 
             if BoardLike.objects.filter(board_id=board_id, member_id=member_id).exists():
-                if BoardLike.objects.filter(board_id=board_id, member_id=member_id)[0].is_like == 1:
+                if BoardLike.objects.get(board_id=board_id, member_id=member_id).is_like == 1:
                     BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=0)
                     return JsonResponse(
                         {
@@ -180,29 +180,29 @@ class LikeBoardView(View):
                             'member_id' : member_id, 
                             'like' : False
                         }, status = 200)
-                else:
-                    BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=1)
-                    return JsonResponse(
-                        {
-                            'message' : 'SUCCESS', 
-                            'member_id' : member_id, 
-                            'like' : True
-                        }, status = 200)
-            else:
-                BoardLike.objects.create(
-                    is_like     = 1,
-                    board_id    = board_id,
-                    member_id   = member_id
-                )
+                
+                BoardLike.objects.filter(board_id=board_id, member_id=member_id).update(is_like=1)
                 return JsonResponse(
                     {
                         'message' : 'SUCCESS', 
                         'member_id' : member_id, 
                         'like' : True
-                    }, status = 201)
+                    }, status = 200)
+            
+            BoardLike.objects.create(
+                is_like     = 1,
+                board_id    = board_id,
+                member_id   = member_id
+            )
+            return JsonResponse(
+                {
+                    'message' : 'SUCCESS', 
+                    'member_id' : member_id, 
+                    'like' : True
+                }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except :
+        except BoardLike.DoesNotExist:
             return JsonResponse({'message' : 'NO_LIKE_EXIST'}, status = 500) 
 
 
@@ -216,7 +216,7 @@ class LikeCommentView(View):
             comment_id  = data['comment_id']
 
             if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).exists():
-                if CommentLike.objects.filter(member_id=member_id, comment_id=comment_id)[0].is_like == 1:
+                if CommentLike.objects.get(member_id=member_id, comment_id=comment_id).is_like == 1:
                     CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=0)
                     return JsonResponse(
                         {
@@ -224,20 +224,20 @@ class LikeCommentView(View):
                             'member_id' : member_id, 
                             'like' : False
                         }, status = 200)
-                else:
-                    CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=1)
-                    return JsonResponse(
-                        {
-                            'message' : 'SUCCESS', 
-                            'member_id' : member_id, 
-                            'like' : True
-                        }, status = 200)
-            else:
-                CommentLike.objects.create(
-                    is_like     = 1,
-                    comment_id  = comment_id,
-                    member_id   = member_id
-                )
+                
+                CommentLike.objects.filter(member_id=member_id, comment_id=comment_id).update(is_like=1)
+                return JsonResponse(
+                    {
+                        'message' : 'SUCCESS', 
+                        'member_id' : member_id, 
+                        'like' : True
+                    }, status = 200)
+            
+            CommentLike.objects.create(
+                is_like     = 1,
+                comment_id  = comment_id,
+                member_id   = member_id
+            )
             return JsonResponse(
                 {
                     'message' : 'SUCCESS', 
@@ -246,7 +246,7 @@ class LikeCommentView(View):
                 }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except :
+        except CommentLike.DoesNotExist:
             return JsonResponse({'message' : 'NO_LIKE_EXIST'}, status = 500)
 
 
