@@ -18,13 +18,16 @@ from user.models  import Member #login_decorator
 
 
 class ProductListView(View):
-    def get(self, request):
+    def get(self, request, type):
             category_seq    = request.GET.get('category', None)
             subcategory_seq = request.GET.get('subcategory', None)
             sort            = request.GET.get('sort', None)
 
-            products = Product.objects.filter(Q(category=category_seq) | Q (subcategory=subcategory_seq), id__range=(1,40)).order_by(sort).values()
-            
+            if type == "new":
+                products = Product.objects.filter(Q(category=category_seq) | Q (subcategory=subcategory_seq), id__range=(1,8)).order_by(sort).values()
+            elif type == "all":
+                products = Product.objects.filter(Q(category=category_seq) | Q (subcategory=subcategory_seq), id__range=(1,40)).order_by(sort).values()
+
             filtered_products = [{
                 "id"            : item["id"],
                 "name"          : item["name"],
