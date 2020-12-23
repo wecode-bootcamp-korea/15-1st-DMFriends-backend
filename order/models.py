@@ -10,9 +10,10 @@ class Order(models.Model):
     delivery_message  = models.CharField(max_length=500)
     order_date        = models.DateField( auto_now = True)
     payments          = models.ForeignKey( 'Payment', on_delete   = models.SET_NULL, null=True)
-    
+
     class Meta:
         db_table = "orders"
+
 
 class Address(models.Model):
     address         = models.CharField(max_length=45)
@@ -20,7 +21,6 @@ class Address(models.Model):
     member_id       = models.ManyToManyField('user.Member', through = 'Order')
     default         = models.BooleanField(default=False)
     created_at      = models.DateTimeField(auto_now=True)
-    
     class Meta:
         db_table = 'addresses'
 
@@ -30,15 +30,17 @@ class OrderStatus(models.Model):
     class Meta:
         db_table = "orderstatuses"
 
+        
 class Cart(models.Model):
     quantity    = models.IntegerField(default=0)
     total_price = models.DecimalField(max_digits= 10, decimal_places=2)
     product     = models.ForeignKey('product.Product', on_delete = models.SET_NULL, null=True, default = 1)
     created_at  = models.DateTimeField(auto_now = True)
     order       = models.ForeignKey('Order', on_delete = models.SET_NULL, null=-True, default = 1)
-    
+
     class Meta:
         db_table = "carts"
+
 
 class Payment(models.Model):
     kakao_pay       = models.CharField(max_length=45)
