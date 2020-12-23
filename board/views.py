@@ -134,7 +134,7 @@ class CommentView(View):
     def post(self, request):
         try:
             if request.user == None:
-                return JsonResponse({"message" : "INVALID_USER"}, status=400) ## 확인부탁드려요!!
+                return JsonResponse({"message" : "INVALID_USER"}, status=400) 
 
             data        = json.loads(request.body)
             board_id    = data['board_id']
@@ -162,7 +162,7 @@ class AddSelfCommentView(View):
     def post(self, request):
         try:
             if request.user == None:
-                return JsonResponse({"message" : "INVALID_USER"}, status=400) ## 확인부탁드려요!!
+                return JsonResponse({"message" : "INVALID_USER"}, status=400) 
 
             data        = json.loads(request.body)
             board_id    = data['board_id']
