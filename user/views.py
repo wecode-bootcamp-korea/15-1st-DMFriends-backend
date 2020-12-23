@@ -8,7 +8,13 @@ from django.http import JsonResponse, HttpResponse
 
 import my_settings
 from user.utils import login_decorator
-from user.models import Member, RecentView, BoardLike, CommentLike, EmailCheck
+from user.models import (
+    Member,
+    RecentView,
+    BoardLike,
+    CommentLike,
+    EmailCheck
+)
 from board.models import Board, Comment
 
 class EmailCheckView(View):
@@ -95,46 +101,6 @@ class LoginView(View):
             return JsonResponse({'message':'SUCCESS_LOGIN', 'token':token}, status=200)
 
         return JsonResponse({'message': 'INVALID_PASSWORD'}, status=400)
-
-class BoardLikeView(View):
-    @login_decorator
-    def post(self, request):
-        data = json.loads(request.body)
-
-        if not BoardLike.objects.filter(board_id=data['board_id'], member_id=request.user).exists():
-            BoardLike.objects.create(
-                member_id = request.user.id,
-                board     = Board.objects.get(id=data['board_id']),
-                is_like   = 1
-            )
-            return JsonResponse({'message': 'ADD'}, status=200)
-    @login_decorator
-    def delete(self, request):
-        data             = json.loads(request.body)  
-        delete_boardlike = BoardLike.objects.get(board_id=data['board_id'], member_id=request.user, is_like=data['is_like'])
-        delete_boardlike.delete()
-        return JsonResponse({'message':'DELETE'})
-
-class CommentLikeView(View):
-    @login_decorator
-    def post(self, request):
-        data = json.loads(request.body)
-        print('1')
-        print(request.user)
-
-        if not CommentLike.objects.filter(comment_id=data['comment_id'], member_id =request.user).exists():
-            CommentLike.objects.create(
-                member    = request.user.id,
-                comment   = Comment.objects.get(id=data['comment_id']),
-                is_like   = 1
-            )
-            return JsonResponse({'message': 'ADD'}, status=200)
-    @login_decorator
-    def delete(self, request):
-        data               = json.loads(request.body) 
-        delete_commentlike = CommentLike.objects.get(comment_id=data['comment_id'], member_id=request.user,)
-        delete_comementlike.delete()
-        return JsonResponse({'message':'DELETE'})
 
 class RecentView(View):
     @login_decorator
