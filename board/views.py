@@ -60,9 +60,7 @@ class BoardListView(View):
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
         except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)
-        except Board.MultipleObjectsReturned:
-            return JsonResponse({'message' : 'TOO_MANY_DATA'}, status = 500)
+            return JsonResponse({'message' : 'BOARD_DOES_NOT_EXIST'}, status = 404)
 
 
 # 2-1. 게시물 상세조회 - 게시물 호출        
@@ -70,7 +68,7 @@ class GetBoardView(View):
     @login_check
     def get(self, request, board_id):
         try:
-            data = Board.objects.filter(id = board_id)[0]
+            data = Board.objects.get(id = board_id)
             
             # 리턴보낼 board_data 준비
             board_data = {
@@ -91,7 +89,7 @@ class GetBoardView(View):
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
         except Board.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)    
+            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 404)    
 
 
 # 2-2. 게시물 상세조회 
@@ -125,9 +123,7 @@ class CommentView(View):
         except ValueError:
             return JsonResponse({'message' : 'DECODE_ERROR'}, status = 400)
         except Comment.DoesNotExist:
-            return JsonResponse({'message' : 'NO_EXIST_DATA'}, status = 500)        
-        except :
-            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500)
+            return JsonResponse({'message' : 'COMMENT_DOES_NOT_EXIST'}, status = 404)   
 
     ## 2. 댓글 작성(POST)
     @login_check
@@ -151,9 +147,7 @@ class CommentView(View):
                 )
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
         except KeyError:
-            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)          
-        except :
-            return JsonResponse({'message' : 'NO_COMMENT_EXIST'}, status = 500) 
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)   
 
 
 # 3. 대댓글 작성
@@ -228,8 +222,6 @@ class LikeBoardView(View):
                 }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except BoardLike.DoesNotExist:
-            return JsonResponse({'message' : 'NO_LIKE_EXIST'}, status = 500) 
 
 
 # 5. 댓글 좋아요
@@ -274,8 +266,6 @@ class LikeCommentView(View):
                 }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-        except CommentLike.DoesNotExist:
-            return JsonResponse({'message' : 'NO_LIKE_EXIST'}, status = 500)
 
 
 
