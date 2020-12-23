@@ -36,9 +36,9 @@ class CartView(View):
     #@login_decorator
     def post(self, request):
         data = json.loads(request.body)
-
-        order_ins, created = Order.objects.get_or_create(          
-            order_status_id = OrderStatus.objects.get(id=1),
+        order_status_id = OrderStatus.objects.get(id=1)
+        order_ins, created = Order.objects.get_or_create(       
+            order_status_id = order_status_id,
             defaults     = {
                 'order_number'     : random.randint(100, 999),
                 'address'          : Address.objects.get(address="justforcart"),
@@ -55,20 +55,19 @@ class CartView(View):
             cart.total_price = cart.product.price * int(cart.quantity)
             cart.save()
 
-            return JsonResponse({"message" : "SUCCESS", "result" : '장바구니에 동일한 상품이 추가되었습니다'}, status = 200)
-
-        else:
-            product_ins = Product.objects.get(id=data["product_id"])
-            price_ins   = product_ins.price
-            
-            Cart.objects.create(quantity=data["quantity"], created_at=00000, product=product_ins, total_price=price_ins, order=order_ins)             
-            
-            return JsonResponse({"message" : "SUCCESS", "result" : '장바구니에 상품이 담겼습니다'}, status = 200)
+            return JsonResponse({"message" : "SUCCESS"}, status = 200)
+        product_ins = Product.objects.get(id=data["product_id"])
+        price_ins   = product_ins.price
+        
+        Cart.objects.create(quantity=data["quantity"], created_at=00000, product=product_ins, total_price=price_ins, order=order_ins)             
+        
+        return JsonResponse({"message" : "SUCCESS", "result" : '장바구니에 상품이 담겼습니다'}, status = 200)
     
-    def delete(self, request): #장바구니 버튼 누를때 삭제하기 (QuerySet)
-        product_id = request.GET.get('product_id', None)
-        Cart.objects.filter(product_id=product_id).delete()
-        return JsonResponse({"message" : "SUCCESS", "result" : '장바구니에서 상품이 삭제되었습니다'}, status = 200)
+    def delete(self, request):
+        product_ids = request.GET.getlist('product_id', None)
+        for id in product_ids:
+            Cart.objects.filter(product_id=id).delete()
+        return JsonResponse({"message" : "SUCCESS"}, status = 200)
 
 
 
@@ -90,36 +89,3 @@ class CartModifyView(View):
     def delete(self, request, cart_id): #장바구니에서 직접 삭제하기 (Path parameter)
         Cart.objects.filter(id=cart_id).delete()
         return JsonResponse({"message" : "SUCCESS", "result" : '장바구니에서 상품이 삭제되었습니다'}, status = 200)
-
-
-
-
-
-
-# 결제창은 추가구현사항으로 프론트와 상의했습니다!
-# class OrderView(View):
-#     def post(self, request):
-#        data = json.loads(request.body)
-#        member_ins = Member.objects.get(id=1) #임시로 1번!
-#         
-#        if data["delete"] == True:
-#            Cart.objects.filter(product_id=data["product_id"]).delete()
-#            return JsonResponse({'message' : 'SUCCESS', "result" : '장바구니에서 상품을 삭제했습니다'}, status = 200)
-            
-#        total_price = int(data["quantity"])*Product.objects.filter(id=data["product_id"]).values_list("price", flat=True)[0]
-#        Cart.objects.filter(product_id=data["product_id"]).update(quantity=data["quantity"], total_price=total_price)        
-         
-#         Cart.objects.filter(order_id=)
-#         order_number_ins = Order.objects()
-#         if data["address"]:
-#             Address.objects.create(address=data["address"], detail_address=data["detail_address"], default=data["default"], member_id=member_ins, created_at=000000)
-#             address_ins = Address.objects.only('id').latest('id')    
-#         paymentstatus_ins = PaymentStatus.objects.get(id=2)
-#         paymenttype_ins = PaymentType.objects.get(name=data["paymenttype"])
-#         Payment.objects.create(member=member_ins, payment_status=paymentstatus_ins, payment_type = paymenttype_ins )
-#         payment_ins = Payment.objects.only('id').latest('id')
-#         orderstatus_ins = Order.objects.only('id').get(id=2)
-#         Order.objects.filter(order_number=order_number_ins).update(delivery_message=data["delivery_message"],order_date=000000, address=address_ins, member=member_ins, order_status=orderstatus_ins, payments=payment_ins)
-#         return JsonResponse({'message' : 'OK'}, status = 200)
-
-
