@@ -21,12 +21,6 @@ with open(CSV_PATH_PRODUCTS) as in_file:
     data_reader = csv.reader(in_file)
     next(data_reader, None)
 
-    # for row in data_reader:
-    #     if row[1] != '':
-    #         category_ins = Category.objects.only('id').get(name=row[0])
-    #         Subcategory.objects.create(name=row[1], category=category_ins)
-    #     else:
-    #         pass
 
     for row in data_reader:
         if row[4] != '':
