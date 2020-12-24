@@ -30,7 +30,7 @@ class CartView(View):
             "price"         : int(item.product.price),
             "quantity"      : item.quantity,
             "discount_id"   : item.product.discount_id,
-            "image_url"     : item.product.productimage_set.filter(product_id=item.product.id).first().image_url
+            "image_url"     : item.product.productimage_set.first().image_url
         }for item in cart]
 
         return JsonResponse({"message" : "SUCCESS", "result" : result}, status = 200)
