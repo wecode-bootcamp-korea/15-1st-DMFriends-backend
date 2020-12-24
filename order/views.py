@@ -14,10 +14,11 @@ from .models        import (
 )
 from user.models    import Member
 from product.models import Product, ProductImage
+from order.models   import PaymentStatus
 
 import random
 
-from user.utils     import login_decorator
+from user.utils     import login_decorator, login_check
 
 class CartView(View):
     #@login_decorator
@@ -34,20 +35,31 @@ class CartView(View):
 
         return JsonResponse({"message" : "SUCCESS", "result" : result}, status = 200)
     
-    #@login_decorator
+    @login_decorator
     def post(self, request):
 
         ORDER_STATUS_ID = 1
 
         data = json.loads(request.body)
+            
+        payment_ins, created = Payment.objects.get_or_create(
+            member   = request.user,
+            defaults = {
+                'kakao_pay'      : 'justforcart', 
+                'virtual_account': 'justforcart', 
+                'payment_status' : PaymentStatus.objects.get(id=1), 
+                'payment_type'   : PaymentType.objects.get(id=3)
+            }
+        )
         order_ins, created = Order.objects.get_or_create(       
             order_status_id = ORDER_STATUS_ID,
+            member          = request.user, 
             defaults     = {
                 'order_number'     : random.randint(100, 999),
                 'address'          : Address.objects.get(address="justforcart"),
-                'member'           : Member.objects.get(id=request.user), 
+                
                 'delivery_message' : '',
-                'payments'         : Payment.objects.get(kakao_pay="justforcart")
+                'payments'         : payment_ins
                 },
         )
 
@@ -65,7 +77,7 @@ class CartView(View):
         
         return JsonResponse({"message" : "SUCCESS"}, status = 200)
     
-    #@login_decorator
+    @login_decorator
     def delete(self, request):
         product_ids = request.GET.getlist('product_id', None)
         for id in product_ids:
@@ -74,7 +86,7 @@ class CartView(View):
 
 class CartModifyView(View):
 
-    #@login_decorator
+    @login_decorator
     def post(self, request, cart_id): 
         data = json.loads(request.body)
 
@@ -85,7 +97,10 @@ class CartModifyView(View):
 
         return JsonResponse({'message' : 'SUCCESS'}, status = 200)
 
-    #@login_decorator
+    @login_decorator
     def delete(self, request, cart_id): #장바구니에서 직접 삭제하기 (Path parameter)
-        Cart.objects.filter(id=cart_id).delete()
-        return JsonResponse({"message" : "SUCCESS"}, status = 200)
+        data = json.loads(request.body)        
+        order_ins = Order.objects.get(member_id=request.user)
+        cart_product=order_ins.cart_set.filter(product_id=data['product_id'])
+        cart_product.delete()
+        return JsonResponse({'message':'DELETE'})
