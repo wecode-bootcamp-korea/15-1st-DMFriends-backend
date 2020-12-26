@@ -115,7 +115,7 @@ class RecentViews(View):
     @login_decorator
     def get(self, request):
         recentviews         = RecentView.objects.filter(member_id=request.user).order_by('-viewed_at')[:10]
-        for i in recentviews:
+        for item in recentviews:
             print(i.product)
         result = [{
             'name'     : item.product.name,
