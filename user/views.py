@@ -14,6 +14,7 @@ from user.models import (
     EmailCheck
 )
 from board.models import Board, Comment
+from product.models import Product
 
 class EmailCheckView(View):
     def post(self, request):
@@ -100,31 +101,34 @@ class LoginView(View):
 
         return JsonResponse({'message': 'INVALID_PASSWORD'}, status=400)
 
-class RecentView(View):
+class RecentViews(View):
     @login_decorator
     def post(self, request):        
         data = json.loads(request.body)
-        if not RecentView.objects.filter(product_id=product_id, member_id=request.user).exists():
+        if not RecentView.objects.filter(product_id=data['product_id'], member_id=request.user).exists():
             RecentView.objects.create(
-                member_id   = request.user,
-                product_id  = Product.objects.get(id=data['product_id']), 
+                member_id   = request.user.id,
+                product_id  = Product.objects.get(id=data['product_id']).id, 
             )
             return JsonResponse({'message': 'RECENTVIEWED_ADD'}, status=200)
+
     @login_decorator
     def get(self, request):
-        recentviews         = Recentview.objects.filter(member_id=request.user).order_by('viewed_at')[:10]
-        recentview_products = recentviews.product
-        
+        recentviews         = RecentView.objects.filter(member_id=request.user).order_by('-viewed_at')[:10]
+        for item in recentviews:
+            print(i.product)
         result = [{
-            'name': item.name,
-            'id': item.id,
-            'price': item.price,
-            'image_url': item.image_url,        
-        }for item in recentview_products]
+            'name'     : item.product.name,
+            'id'       : item.id,
+            'price'    : item.product.price,
+            'image_url': item.product.productimage_set.filter(product_id=item.product.id).first().image_url      
+        }for item in recentviews]
 
         return JsonResponse({'message': 'SUCCESS', 'result': result}, status = 200)
+
     @login_decorator    
     def delete(self, request):
+        data = json.loads(request.body)        
         delete_recentview = RecentView.objects.get(product_id=data['product_id'], member_id=request.user)
         delete_recentview.delete()
         return JsonResponse({'message':'DELETE'})

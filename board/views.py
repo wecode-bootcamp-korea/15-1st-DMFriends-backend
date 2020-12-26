@@ -34,7 +34,7 @@ class BoardListView(View):
                 "content_num"   : Comment.objects.filter(board_id = board_id).count()
             }
         else:
-            comment_data = ''
+            comment_data = {'content_num':0}
         return comment_data
 
     @login_check
@@ -266,7 +266,3 @@ class LikeCommentView(View):
                 }, status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
-
-
-
-
